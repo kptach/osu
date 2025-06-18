@@ -25,7 +25,7 @@ namespace osu.Game.Rulesets.Mania.Mods
         public override ModType Type => ModType.Conversion;
 
         public override IconUsage? Icon => OsuIcon.Dice;
-        public override LocalisableString Description => @"Rearrange the keys randomly or manually!";
+        public override LocalisableString Description => @"Rearrange the keys randomly!";
         public override double ScoreMultiplier => 1;
 
         [SettingSource("Seed", "Use a custom seed instead of a random one", SettingControlType = typeof(SettingsNumberBox))]
