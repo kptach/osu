@@ -4,12 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Bindables;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Localisation;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
-using osu.Game.Configuration;
 using osu.Game.Rulesets.Mania.Beatmaps;
 using osu.Game.Rulesets.Mania.Objects;
 using osu.Game.Rulesets.Mods;
@@ -19,10 +16,7 @@ namespace osu.Game.Rulesets.Mania.Mods
 {
     public class ManiaModRandom : ModRandom, IApplicableToBeatmap
     {
-        public override LocalisableString Description => @"Shuffle around the keys!";
-
-        [SettingSource("Randomization type")]
-        public Bindable<RandomizationType> Randomizer { get; } = new Bindable<RandomizationType>();
+        public override LocalisableString Description => @"Shuffle around the notes!";
 
         public void ApplyToBeatmap(IBeatmap beatmap)
         {
@@ -30,55 +24,40 @@ namespace osu.Game.Rulesets.Mania.Mods
             var rng = new Random((int)Seed.Value);
             var maniaBeatmap = (ManiaBeatmap)beatmap;
             int availableColumns = maniaBeatmap.TotalColumns;
-            var shuffledColumns = Enumerable.Range(0, availableColumns).OrderBy(_ => rng.Next()).ToList();
 
-            if (Randomizer.Value == RandomizationType.Notes)
+            double[] columnEndTimes = new double[availableColumns];
+            double lastStartTime = -1;
+            var availableColumnsList = new List<int>();
+
+            const double release_buffer = 1.5; // Minimum gap to avoid conflict at end of HoldNote
+
+            foreach (var h in beatmap.HitObjects.OfType<ManiaHitObject>())
             {
-                double[] columnEndTimes = new double[availableColumns];
-                double lastStartTime = -1;
-                var availableColumnsList = new List<int>();
+                double currentStartTime = h.StartTime;
 
-                const double release_buffer = 1.5; // Minimum gap to avoid conflict at end of HoldNote
-
-                foreach (var h in beatmap.HitObjects.OfType<ManiaHitObject>())
+                if (currentStartTime != lastStartTime)
                 {
-                    double currentStartTime = h.StartTime;
-
-                    if (currentStartTime != lastStartTime)
-                    {
-                        availableColumnsList = Enumerable.Range(0, availableColumns)
-                                                         .Where(i => columnEndTimes[i] < currentStartTime - release_buffer)
-                                                         .ToList();
-                    }
-
-                    if (availableColumnsList.Count == 0)
-                        continue; // Skip if no free columns for aspire maps
-
-                    int randomIndex = rng.Next(availableColumnsList.Count);
-                    int randomColumn = availableColumnsList[randomIndex];
-
-                    h.Column = randomColumn;
-                    availableColumnsList.Remove(randomColumn);
-
-                    if (h is HoldNote hold)
-                        columnEndTimes[randomColumn] = hold.GetEndTime();
-
-                    lastStartTime = currentStartTime;
+                    availableColumnsList = Enumerable.Range(0, availableColumns)
+                                                     .Where(i => columnEndTimes[i] < currentStartTime - release_buffer)
+                                                     .ToList();
                 }
 
-                maniaBeatmap.HitObjects = maniaBeatmap.HitObjects.OrderBy(h => h.StartTime).ToList();
+                if (availableColumnsList.Count == 0)
+                    continue; // Skip if no free columns for aspire maps
+
+                int randomIndex = rng.Next(availableColumnsList.Count);
+                int randomColumn = availableColumnsList[randomIndex];
+
+                h.Column = randomColumn;
+                availableColumnsList.Remove(randomColumn);
+
+                if (h is HoldNote hold)
+                    columnEndTimes[randomColumn] = hold.GetEndTime();
+
+                lastStartTime = currentStartTime;
             }
 
-            if (Randomizer.Value == RandomizationType.Columns)
-            {
-                beatmap.HitObjects.OfType<ManiaHitObject>().ForEach(h => h.Column = shuffledColumns[h.Column]);
-            }
-        }
-
-        public enum RandomizationType
-        {
-            Columns,
-            Notes
+            maniaBeatmap.HitObjects = maniaBeatmap.HitObjects.OrderBy(h => h.StartTime).ToList();
         }
     }
 }

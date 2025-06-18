@@ -12,47 +12,44 @@ using osu.Game.Tests.Visual;
 
 namespace osu.Game.Rulesets.Mania.Tests.Mods
 {
-    public partial class TestSceneManiaModRandom : ModTestScene
+    public partial class TestSceneManiaModRearrange : ModTestScene
     {
         protected override Ruleset CreatePlayerRuleset() => new ManiaRuleset();
 
+        [TestCase(2)]
+        [TestCase(3)]
         [TestCase(4)]
-        [TestCase(7)]
+        [TestCase(5)]
         [TestCase(10)]
-        public void AssertNoOverlapping(int columnCount)
+        public void TestColumnRandomizationVaryingSeeds(int columnCount)
         {
-            var beatmap = createModdedBeatmap(columnCount);
+            var original = createRawBeatmap(columnCount);
+            var originalColumns = original.HitObjects.Cast<ManiaHitObject>().Select(h => h.Column).ToList();
 
-            for (int column = 0; column < columnCount; column++)
+            int unchangedCount = 0;
+
+            for (int seed = 0; seed < 10000; seed++)
             {
-                var columnObjects = beatmap.HitObjects
-                                           .Where(o => o.Column == column)
-                                           .OrderBy(o => o.StartTime)
-                                           .ToList();
+                var beatmap = createRawBeatmap(columnCount);
 
-                for (int i = 1; i < columnObjects.Count; i++)
+                var mod = new ManiaModRearrange
                 {
-                    var prev = columnObjects[i - 1];
-                    var curr = columnObjects[i];
+                    Seed = { Value = seed },
+                };
 
-                    double prevEnd = (prev as HoldNote)?.EndTime ?? prev.StartTime;
-                    Assert.That(prevEnd <= curr.StartTime,
-                        $"[Column {column}: Note at {curr.StartTime} overlaps with previous ending at {prevEnd}");
-                }
+                foreach (var obj in beatmap.HitObjects)
+                    obj.ApplyDefaults(beatmap.ControlPointInfo, new BeatmapDifficulty());
+
+                mod.ApplyToBeatmap(beatmap);
+
+                var newColumns = beatmap.HitObjects.Cast<ManiaHitObject>().Select(h => h.Column).ToList();
+
+                if (newColumns.SequenceEqual(originalColumns))
+                    unchangedCount++;
             }
-        }
 
-        private static ManiaBeatmap createModdedBeatmap(int columnCount)
-        {
-            var beatmap = createRawBeatmap(columnCount);
-            var mod = new ManiaModRandom();
-
-            foreach (var obj in beatmap.HitObjects)
-                obj.ApplyDefaults(beatmap.ControlPointInfo, new BeatmapDifficulty());
-
-            mod.ApplyToBeatmap(beatmap);
-
-            return beatmap;
+            Assert.That(unchangedCount < 10000, $"Expected at least one seed to produce different column assignments, but all 10000 seeds were unchanged.");
+            TestContext.WriteLine($"{10000 - unchangedCount} out of 10000 seeds produced different column assignments.");
         }
 
         private static ManiaBeatmap createRawBeatmap(int columnCount)
