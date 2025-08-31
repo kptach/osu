@@ -1,4 +1,4 @@
-﻿﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace osu.Game.Rulesets.Mania
             {
                 leftKeys = new[] { InputKey.A, InputKey.S, InputKey.D, InputKey.F, InputKey.V };
                 rightKeys = new[] { InputKey.N, InputKey.J, InputKey.K, InputKey.L, InputKey.Semicolon };
-                secondaryLeftKeys = new[] { InputKey.Q, InputKey.W, InputKey.E, InputKey.R, InputKey.G };
+                secondaryLeftKeys = new[] { InputKey.Q, InputKey.W, InputKey.E, InputKey.R, InputKey.B };
                 secondaryRightKeys = new[] { InputKey.M, InputKey.I, InputKey.O, InputKey.P, InputKey.BracketLeft };
             }
             else
