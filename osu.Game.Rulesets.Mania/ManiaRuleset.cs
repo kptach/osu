@@ -267,6 +267,7 @@ namespace osu.Game.Rulesets.Mania
                         new ManiaModInvert(),
                         new ManiaModConstantSpeed(),
                         new ManiaModHoldOff(),
+                        new ManiaModJackify(),
                         new MultiMod(
                             new ManiaModKey1(),
                             new ManiaModKey2(),

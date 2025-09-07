@@ -32,7 +32,7 @@ namespace osu.Game.Rulesets.Mania.Mods
 
         public override ModType Type => ModType.DifficultyReduction;
 
-        public override Type[] IncompatibleMods => new[] { typeof(ManiaModHoldOff) };
+        public override Type[] IncompatibleMods => new[] { typeof(ManiaModHoldOff), typeof(ManiaModJackify) };
 
         public void ApplyToBeatmap(IBeatmap beatmap)
         {
